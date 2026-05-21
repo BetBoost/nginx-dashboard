@@ -77,10 +77,11 @@ export class PackageService {
   install(server: Server, packages: string[], actorId: string): string {
     const sanitized = this.sanitize(packages);
     const run = this.runs.create(server.id, 'package-install', `apt install ${sanitized.join(' ')}`);
-    const env = 'DEBIAN_FRONTEND=noninteractive';
+    const env = 'DEBIAN_FRONTEND=noninteractive LC_ALL=C';
+    const opts = '-o Dpkg::Use-Pty=0 -o APT::Color=0';
     const script = [
-      `sudo ${env} apt-get update`,
-      `sudo ${env} apt-get install -y ${sanitized.join(' ')}`,
+      `sudo ${env} apt-get ${opts} update`,
+      `sudo ${env} apt-get ${opts} install -y ${sanitized.join(' ')}`,
     ];
 
     this.runScript(run.id, server, script)
@@ -103,7 +104,7 @@ export class PackageService {
   remove(server: Server, packages: string[], purge: boolean, actorId: string): string {
     const sanitized = this.sanitize(packages);
     const run = this.runs.create(server.id, 'package-remove', `apt ${purge ? 'purge' : 'remove'} ${sanitized.join(' ')}`);
-    const cmd = `sudo DEBIAN_FRONTEND=noninteractive apt-get ${purge ? 'purge' : 'remove'} -y ${sanitized.join(' ')}`;
+    const cmd = `sudo DEBIAN_FRONTEND=noninteractive LC_ALL=C apt-get -o Dpkg::Use-Pty=0 -o APT::Color=0 ${purge ? 'purge' : 'remove'} -y ${sanitized.join(' ')}`;
 
     this.runScript(run.id, server, [cmd])
       .then((res) => {
@@ -124,10 +125,11 @@ export class PackageService {
   /** Async — apt update + upgrade. */
   upgrade(server: Server, actorId: string): string {
     const run = this.runs.create(server.id, 'package-upgrade', 'apt upgrade');
-    const env = 'DEBIAN_FRONTEND=noninteractive';
+    const env = 'DEBIAN_FRONTEND=noninteractive LC_ALL=C';
+    const opts = '-o Dpkg::Use-Pty=0 -o APT::Color=0';
     const script = [
-      `sudo ${env} apt-get update`,
-      `sudo ${env} apt-get upgrade -y`,
+      `sudo ${env} apt-get ${opts} update`,
+      `sudo ${env} apt-get ${opts} upgrade -y`,
     ];
 
     this.runScript(run.id, server, script)

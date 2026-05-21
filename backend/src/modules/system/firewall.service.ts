@@ -65,8 +65,10 @@ export class FirewallService {
   /** Async — installs ufw if missing and enables it. */
   enable(server: Server, actorId: string): string {
     const run = this.runs.create(server.id, 'firewall-enable', 'firewall enable');
+    const env = 'DEBIAN_FRONTEND=noninteractive LC_ALL=C';
+    const opts = '-o Dpkg::Use-Pty=0 -o APT::Color=0';
     const script = [
-      'if ! command -v ufw >/dev/null 2>&1; then sudo DEBIAN_FRONTEND=noninteractive apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y ufw; fi',
+      `if ! command -v ufw >/dev/null 2>&1; then sudo ${env} apt-get ${opts} update && sudo ${env} apt-get ${opts} install -y ufw; fi`,
       'sudo ufw allow OpenSSH || sudo ufw allow 22/tcp',
       'echo "y" | sudo ufw enable',
       'sudo ufw status verbose',

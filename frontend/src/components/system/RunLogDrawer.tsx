@@ -9,6 +9,42 @@ import {
   type RunDone,
 } from '@/api/system';
 
+// Strip ANSI escape sequences (color codes, cursor moves) — apt and friends
+// emit them even with DEBIAN_FRONTEND=noninteractive. Without this the log
+// looks like garbled `?[0m?[31m...` mush.
+const ANSI_RE =
+  // eslint-disable-next-line no-control-regex
+  /\x1b\[[0-9;?]*[A-Za-z]|\x1b\][^\x07]*\x07|\x1b[=>]|\x1b\([AB012]/g;
+
+/**
+ * Render a chunk stream into display lines, collapsing `\r`-progress updates
+ * (apt-get download progress, dpkg "Unpacking 5%" lines) onto a single line.
+ *
+ * Algorithm: maintain a current line; for each character: \n commits the line
+ * and starts a new one; \r resets the current line's content (next chars
+ * overwrite the start). This matches what a terminal emulator does.
+ */
+function renderLog(chunks: RunChunk[]): string {
+  let cur = '';
+  const lines: string[] = [];
+  for (const c of chunks) {
+    const clean = c.data.replace(ANSI_RE, '');
+    for (let i = 0; i < clean.length; i++) {
+      const ch = clean[i];
+      if (ch === '\n') {
+        lines.push(cur);
+        cur = '';
+      } else if (ch === '\r') {
+        cur = '';
+      } else {
+        cur += ch;
+      }
+    }
+  }
+  if (cur) lines.push(cur);
+  return lines.join('\n');
+}
+
 export interface RunLogDrawerProps {
   serverId: string;
   runId: string | null;
@@ -78,7 +114,7 @@ export function RunLogDrawer({ serverId, runId, title, onClose, onFinished }: Ru
     logRef.current.scrollTop = logRef.current.scrollHeight;
   }, [chunks, autoScroll]);
 
-  const text = useMemo(() => chunks.map((c) => c.data).join(''), [chunks]);
+  const text = useMemo(() => renderLog(chunks), [chunks]);
 
   if (!runId) return null;
 
