@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { format } from 'date-fns';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Trash2, Settings2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 import { Card, CardHeader } from '@/components/ui/Card';
@@ -48,6 +48,9 @@ export function ServerDetailPage() {
         description={`${server.username}@${server.host}:${server.port}`}
         actions={
           <div className="flex gap-2">
+            <Link to={`/servers/${id}/system`} className="btn-secondary">
+              <Settings2 size={16} /> System
+            </Link>
             <button className="btn-secondary" onClick={() => setEditOpen(true)}>
               <Pencil size={16} /> Edit
             </button>

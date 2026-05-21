@@ -54,6 +54,13 @@ enum AuditAction {
   NGINX_RELOADED
   BACKUP_CREATED
   BACKUP_RESTORED
+  PACKAGE_INSTALLED
+  PACKAGE_REMOVED
+  PACKAGE_UPDATED
+  FIREWALL_RULE_ADDED
+  FIREWALL_RULE_REMOVED
+  FIREWALL_ENABLED
+  FIREWALL_DISABLED
 }
 
 // ── Models ───────────────────────────────────────────────────────────────

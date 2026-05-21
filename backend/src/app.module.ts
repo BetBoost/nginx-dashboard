@@ -22,6 +22,7 @@ import { MonitoringModule } from '@modules/monitoring/monitoring.module';
 import { AuditModule } from '@modules/audit/audit.module';
 import { BackupModule } from '@modules/backup/backup.module';
 import { HealthModule } from '@modules/health/health.module';
+import { SystemModule } from '@modules/system/system.module';
 
 @Module({
   imports: [
@@ -55,6 +56,7 @@ import { HealthModule } from '@modules/health/health.module';
     MonitoringModule,
     BackupModule,
     HealthModule,
+    SystemModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },

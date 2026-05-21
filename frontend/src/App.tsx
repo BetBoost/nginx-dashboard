@@ -6,6 +6,7 @@ import { LoginPage } from '@/pages/auth/LoginPage';
 import { DashboardPage } from '@/pages/dashboard/DashboardPage';
 import { ServersPage } from '@/pages/servers/ServersPage';
 import { ServerDetailPage } from '@/pages/servers/ServerDetailPage';
+import { ServerSystemPage } from '@/pages/servers/ServerSystemPage';
 import { SubdomainsPage } from '@/pages/subdomains/SubdomainsPage';
 import { SubdomainDetailPage } from '@/pages/subdomains/SubdomainDetailPage';
 import { AuditPage } from '@/pages/audit/AuditPage';
@@ -23,6 +24,7 @@ export default function App() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/servers" element={<ServersPage />} />
           <Route path="/servers/:id" element={<ServerDetailPage />} />
+          <Route path="/servers/:id/system" element={<ServerSystemPage />} />
           <Route path="/subdomains" element={<SubdomainsPage />} />
           <Route path="/subdomains/:id" element={<SubdomainDetailPage />} />
           <Route path="/audit" element={<AuditPage />} />
