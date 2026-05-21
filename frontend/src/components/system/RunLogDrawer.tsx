@@ -120,8 +120,8 @@ export function RunLogDrawer({ serverId, runId, title, onClose, onFinished }: Ru
 
   return (
     <div className="fixed inset-0 z-50 flex">
-      <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="ml-auto flex h-full w-full max-w-3xl flex-col bg-white shadow-2xl dark:bg-surface-dark">
+      <div className="absolute inset-0 bg-slate-900/60" onClick={onClose} />
+      <div className="relative z-10 ml-auto flex h-full w-full max-w-3xl flex-col bg-white shadow-2xl dark:bg-surface-dark">
         <div className="flex h-14 items-center justify-between border-b border-slate-200 px-4 dark:border-slate-800">
           <div className="flex items-center gap-2 min-w-0">
             {!done && <Loader2 size={16} className="shrink-0 animate-spin text-brand-500" />}
