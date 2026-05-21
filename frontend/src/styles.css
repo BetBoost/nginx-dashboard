@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body, #root { height: 100%; }
+  body { -webkit-font-smoothing: antialiased; }
+  *::-webkit-scrollbar { width: 10px; height: 10px; }
+  *::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-slate-300/60 dark:bg-slate-700/60;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    @apply bg-slate-400/80 dark:bg-slate-600/80;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-md px-3.5 py-2 text-sm font-medium
+           transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500
+           disabled:opacity-50 disabled:pointer-events-none;
+  }
+  .btn-primary {
+    @apply btn bg-brand-600 text-white hover:bg-brand-700;
+  }
+  .btn-secondary {
+    @apply btn bg-slate-200 text-slate-900 hover:bg-slate-300
+           dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700;
+  }
+  .btn-ghost {
+    @apply btn text-slate-700 hover:bg-slate-200/70
+           dark:text-slate-200 dark:hover:bg-slate-800/70;
+  }
+  .btn-danger {
+    @apply btn bg-red-600 text-white hover:bg-red-700;
+  }
+
+  .card {
+    @apply rounded-xl border border-slate-200 bg-white shadow-card
+           dark:border-slate-800 dark:bg-surface-dark-subtle dark:shadow-card-dark;
+  }
+  .input {
+    @apply w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm
+           placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30
+           dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500;
+  }
+  .label {
+    @apply mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400;
+  }
+  .badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium;
+  }
+  .table-row-hover {
+    @apply hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors;
+  }
+}

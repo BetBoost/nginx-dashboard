@@ -1,0 +1,172 @@
+// Nginx Dashboard – Prisma schema
+// ────────────────────────────────────────────────────────────────────────────
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ── Enums ────────────────────────────────────────────────────────────────
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum SubdomainStatus {
+  PENDING
+  ACTIVE
+  DISABLED
+  ERROR
+}
+
+enum SslStatus {
+  NONE
+  PENDING
+  ACTIVE
+  EXPIRING
+  EXPIRED
+  ERROR
+}
+
+enum AuditAction {
+  USER_LOGIN
+  USER_LOGOUT
+  USER_CREATED
+  USER_UPDATED
+  USER_DELETED
+  SERVER_CREATED
+  SERVER_UPDATED
+  SERVER_DELETED
+  SERVER_TESTED
+  SUBDOMAIN_CREATED
+  SUBDOMAIN_UPDATED
+  SUBDOMAIN_DELETED
+  SUBDOMAIN_ENABLED
+  SUBDOMAIN_DISABLED
+  SSL_ISSUED
+  SSL_RENEWED
+  SSL_REVOKED
+  NGINX_RELOADED
+  BACKUP_CREATED
+  BACKUP_RESTORED
+}
+
+// ── Models ───────────────────────────────────────────────────────────────
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  passwordHash  String
+  name          String?
+  role          Role      @default(USER)
+  isActive      Boolean   @default(true)
+  lastLoginAt   DateTime?
+  refreshToken  String?   // hashed
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  auditLogs     AuditLog[]
+  servers       Server[]
+
+  @@index([email])
+}
+
+model Server {
+  id            String    @id @default(uuid())
+  name          String
+  host          String                              // hostname or IP
+  port          Int       @default(22)
+  username      String
+  // Encrypted (AES-256-GCM) ssh credentials — opaque to anything but
+  // CryptoService.  Format: "<ivHex>:<authTagHex>:<cipherHex>"
+  // Exactly one of privateKeyEnc or passwordEnc must be set.
+  privateKeyEnc String?   @db.Text
+  passphraseEnc String?   @db.Text                  // passphrase for the key
+  passwordEnc   String?   @db.Text                  // password auth alternative
+  nginxPath     String    @default("/etc/nginx")    // remote nginx root
+  sitesAvailable String   @default("/etc/nginx/sites-available")
+  sitesEnabled   String   @default("/etc/nginx/sites-enabled")
+  reloadCommand  String   @default("sudo systemctl reload nginx")
+  testCommand    String   @default("sudo nginx -t")
+  certbotEnabled Boolean  @default(true)
+  isActive       Boolean  @default(true)
+  lastSeenAt     DateTime?
+  notes          String?
+
+  ownerId        String?
+  owner          User?      @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+
+  subdomains     Subdomain[]
+  backups        ConfigBackup[]
+
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  @@unique([host, port])
+}
+
+model Subdomain {
+  id              String          @id @default(uuid())
+  name            String                                 // FQDN, e.g. app.example.com
+  serverId        String
+  server          Server          @relation(fields: [serverId], references: [id], onDelete: Cascade)
+
+  upstreamHost    String                                 // 127.0.0.1 / container name
+  upstreamPort    Int             @default(80)
+  upstreamScheme  String          @default("http")       // http | https
+  forceHttps      Boolean         @default(true)
+  websocket       Boolean         @default(false)
+  customDirectives String?        @db.Text              // raw nginx fragment injected into server{}
+  clientMaxBodySize String?       // e.g. "100M"
+
+  status          SubdomainStatus @default(PENDING)
+  sslStatus       SslStatus       @default(NONE)
+  sslExpiresAt    DateTime?
+  lastReloadOk    Boolean?
+  lastError       String?         @db.Text
+
+  configPath      String?                                // /etc/nginx/sites-available/<name>.conf
+  enabledPath     String?                                // /etc/nginx/sites-enabled/<name>.conf
+
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@unique([serverId, name])
+  @@index([name])
+  @@index([status])
+}
+
+model ConfigBackup {
+  id          String   @id @default(uuid())
+  serverId    String
+  server      Server   @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  filename    String                       // tar.gz blob name on disk
+  sizeBytes   Int
+  note        String?
+  createdAt   DateTime @default(now())
+
+  @@index([serverId])
+}
+
+model AuditLog {
+  id        String      @id @default(uuid())
+  action    AuditAction
+  actorId   String?
+  actor     User?       @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  targetType String?                                // "Server", "Subdomain", …
+  targetId   String?
+  ip         String?
+  userAgent  String?
+  meta       Json?
+  message    String?     @db.Text
+  createdAt  DateTime    @default(now())
+
+  @@index([actorId])
+  @@index([action])
+  @@index([createdAt])
+}

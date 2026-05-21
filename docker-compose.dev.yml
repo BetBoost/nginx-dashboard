@@ -1,0 +1,19 @@
+name: nginx-dashboard-dev
+
+# Lightweight dev variant — runs only postgres in docker; backend+frontend run on the host.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-nginx_dashboard}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me_strong_password}
+      POSTGRES_DB: ${POSTGRES_DB:-nginx_dashboard}
+    volumes:
+      - pgdata-dev:/var/lib/postgresql/data
+
+volumes:
+  pgdata-dev:

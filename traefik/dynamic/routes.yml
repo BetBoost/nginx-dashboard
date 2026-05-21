@@ -1,0 +1,50 @@
+http:
+  routers:
+    dashboard:
+      rule: "Host(`{{ env `TRAEFIK_DOMAIN` }}`)"
+      service: api@internal
+      entryPoints: [websecure]
+      middlewares: [traefik-auth, secure-headers]
+      tls:
+        certResolver: le
+
+    api:
+      rule: "Host(`{{ env `API_DOMAIN` }}`)"
+      service: backend
+      entryPoints: [websecure]
+      middlewares: [secure-headers]
+      tls:
+        certResolver: le
+
+    app:
+      rule: "Host(`{{ env `APP_DOMAIN` }}`)"
+      service: frontend
+      entryPoints: [websecure]
+      middlewares: [secure-headers]
+      tls:
+        certResolver: le
+
+    app-api:
+      rule: "Host(`{{ env `APP_DOMAIN` }}`) && PathPrefix(`/api`)"
+      service: backend
+      entryPoints: [websecure]
+      middlewares: [secure-headers]
+      tls:
+        certResolver: le
+
+  services:
+    backend:
+      loadBalancer:
+        servers:
+          - url: "http://backend:4000"
+
+    frontend:
+      loadBalancer:
+        servers:
+          - url: "http://frontend:80"
+
+  middlewares:
+    traefik-auth:
+      basicAuth:
+        users:
+          - "{{ env `TRAEFIK_DASHBOARD_AUTH` }}"
